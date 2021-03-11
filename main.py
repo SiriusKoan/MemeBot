@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw, ImageFont
 from templates import templates
 from io import BytesIO
 from helper import measure_font_size
-from db import base, User, TemplateTotalUse
+from db import base, User, TemplateTotalUse, Memes
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 

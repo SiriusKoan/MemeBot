@@ -19,4 +19,20 @@ class TemplateTotalUse(base):     # record total use
     
     def __init__(self, template_id):
         self.template_id = template_id
+        
+class Memes(base):
+    __tablename__ = "memes"
+    ID = Column(Integer, primary_key=True)
+    chat_id = Column(Integer, nullable=False)
+    template_id = Column(Integer, nullable=False)
+    text1 = Column(String)
+    text2 = Column(String)
+    text3 = Column(String)
+    
+    def __init__(self, chat_id, template_id, text1, text2, text3):
+        self.chat_id = chat_id
+        self.template_id = template_id
+        self.text1 = text1
+        self.text2 = text2
+        self.text3 = text3
     
