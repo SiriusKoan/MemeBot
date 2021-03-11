@@ -2,9 +2,11 @@ import telebot
 from os import getenv
 from PIL import Image, ImageDraw, ImageFont
 from templates import templates
-from io import BytesIO, BufferedReader
+from io import BytesIO
+from helper import measure_font_size
 
 bot = telebot.TeleBot(getenv("TOKEN"))
+
 
 @bot.message_handler(commands=["start"])
 def receive_start(message):
@@ -14,14 +16,20 @@ def receive_start(message):
 @bot.message_handler(commands=["make"])
 def receive_make_meme(message):
     chat_id = message.chat.id
-    template_id, *text = message.text[6:].split("/")
+    template_id, *text = message.text[6:].split(",")
     template_id = int(template_id)
     if template_id in templates:
-        coordinates = templates[template_id]
+        template_info = templates[template_id]
+        coordinates = template_info["position"]
+        color = template_info["color"]
         with Image.open("templates/%s.png"%template_id) as template:
             draw = ImageDraw.Draw(template)
             for i in range(min(len(coordinates), len(text))):
-                draw.text(coordinates[i], text[i])
+                font = ImageFont.truetype("fonts/impact.ttf", measure_font_size(text[i]))
+                width, _ = draw.textsize(text[i], font)
+                x = coordinates[i][0] - (width / 2)
+                y = coordinates[i][1]
+                draw.text((x, y), text[i].upper(), font=font, fill=color)
             f = BytesIO()
             template.save(f, "PNG")
             bot.send_photo(chat_id, f.getvalue())
