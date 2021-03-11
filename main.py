@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw, ImageFont
 from templates import templates
 from io import BytesIO
 from helper import measure_font_size
-from db import base, User, TemplateUse
+from db import base, User, TemplateTotalUse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -30,6 +30,14 @@ def receive_make_meme(message):
     template_id, *text = message.text[6:].split(",")
     template_id = int(template_id)
     if template_id in templates:
+        if session.query(TemplateTotalUse).filter_by(template_id=template_id).first() is None:
+            use = TemplateTotalUse(template_id)
+            session.add(use)
+            session.commit()
+        else:
+            use = session.query(TemplateTotalUse).filter_by(template_id=template_id).first()
+            use.use = TemplateTotalUse.use + 1
+            session.commit()
         template_info = templates[template_id]
         coordinates = template_info["position"]
         color = template_info["color"]

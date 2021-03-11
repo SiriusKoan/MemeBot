@@ -11,11 +11,11 @@ class User(base):
     def __init__(self, chat_id):
         self.chat_id = chat_id
         
-class TemplateUse(base):
+class TemplateTotalUse(base):     # record total use
     __tablename__ = "templates_use"
     ID = Column(Integer, primary_key=True)
     template_id = Column(Integer, unique=True, nullable=False)
-    use = Column(Integer, default=0)
+    use = Column(Integer, default=1)
     
     def __init__(self, template_id):
         self.template_id = template_id
