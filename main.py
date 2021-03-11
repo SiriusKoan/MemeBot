@@ -1,16 +1,27 @@
 import telebot
-from os import getenv
+from os import getenv, listdir
 from PIL import Image, ImageDraw, ImageFont
 from templates import templates
 from io import BytesIO
 from helper import measure_font_size
+from db import base, User, TemplateUse
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 bot = telebot.TeleBot(getenv("TOKEN"))
 
+engine = create_engine("sqlite:///data.db")
+base.metadata.create_all(engine)
+Session = sessionmaker(engine)
+session = Session()
 
 @bot.message_handler(commands=["start"])
 def receive_start(message):
     chat_id = message.chat.id
+    user = User(chat_id)
+    if session.query(User).filter_by(chat_id=chat_id).first() is None:
+        session.add(user)
+        session.commit()
     bot.send_message(chat_id, "Welcome. I can help you send memes.")
     
 @bot.message_handler(commands=["make"])

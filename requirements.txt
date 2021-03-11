@@ -1,0 +1,3 @@
+sqlachemy
+pytelegrambotapi
+pillow
