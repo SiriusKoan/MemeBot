@@ -1,9 +1,10 @@
 import telebot
+from telebot import types
 from os import getenv, listdir
 from PIL import Image, ImageDraw, ImageFont
 from templates import templates
 from io import BytesIO
-from helper import measure_font_size
+from helper import make_meme
 from db import base, User, TemplateTotalUse, Memes
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -15,7 +16,8 @@ base.metadata.create_all(engine)
 Session = sessionmaker(engine)
 session = Session()
 
-@bot.message_handler(commands=["start"])
+
+@bot.message_handler(commands=["start", "help"])
 def receive_start(message):
     chat_id = message.chat.id
     user = User(chat_id)
@@ -23,50 +25,94 @@ def receive_start(message):
         session.add(user)
         session.commit()
     bot.send_message(chat_id, "Welcome. I can help you send memes.")
-    
+
+
 @bot.message_handler(commands=["make"])
 def receive_make_meme(message):
     chat_id = message.chat.id
+    msg_id = message.message_id
     template_id, *text = message.text[6:].split(",")
     template_id = int(template_id)
     if template_id in templates:
-        if session.query(TemplateTotalUse).filter_by(template_id=template_id).first() is None:
+        if (
+            session.query(TemplateTotalUse).filter_by(template_id=template_id).first()
+            is None
+        ):
             use = TemplateTotalUse(template_id)
             session.add(use)
             session.commit()
         else:
-            use = session.query(TemplateTotalUse).filter_by(template_id=template_id).first()
+            use = (
+                session.query(TemplateTotalUse)
+                .filter_by(template_id=template_id)
+                .first()
+            )
             use.use = TemplateTotalUse.use + 1
             session.commit()
-        template_info = templates[template_id]
-        coordinates = template_info["position"]
-        color = template_info["color"]
-        with Image.open("templates/%s.png"%template_id) as template:
-            draw = ImageDraw.Draw(template)
-            for i in range(min(len(coordinates), len(text))):
-                font = ImageFont.truetype("fonts/impact.ttf", measure_font_size(text[i]))
-                width, _ = draw.textsize(text[i], font)
-                x = coordinates[i][0] - (width / 2)
-                y = coordinates[i][1]
-                draw.text((x, y), text[i].upper(), font=font, fill=color)
-            f = BytesIO()
-            template.save(f, "PNG")
-            bot.send_photo(chat_id, f.getvalue())
+
+        kb = types.InlineKeyboardMarkup()
+        callback_data = "/".join(["store", str(template_id), *text])
+        kb.row(
+            types.InlineKeyboardButton("Store and publish", callback_data=callback_data)
+        )
+        bot.send_photo(
+            chat_id, make_meme(template_id, text), reply_markup=kb
+        )
     else:
         bot.send_message(chat_id, "Template not found.")
-    
-    
+
+
 @bot.message_handler(commands=["template"])
 def receive_get_template(message):
     chat_id = message.chat.id
     try:
         template_id = int(message.text[10:])
         if template_id in templates:
-            with open("templates/%s.png"%template_id, "rb") as template:
+            with open("templates/%s.png" % template_id, "rb") as template:
                 bot.send_photo(chat_id, template)
         else:
             bot.send_message(chat_id, "Template not found.")
     except ValueError:
         bot.send_message(chat_id, "Please type an integer.")
         
+        
+@bot.message_handler(commands=["publish"])
+def receive_send_published(message):
+    chat_id = message.chat.id
+    ID = message.text[8:]
+    try:
+        ID = int(ID)
+    except:
+        bot.send_message(chat_id, "Please type an integer.")
+    else:
+        meme = session.query(Memes).filter_by(ID=ID).first()
+        if meme is not None:
+            template_id = meme.template_id
+            text = [meme.text1, meme.text2, meme.text3]
+            try:
+                text.remove(None)
+            except:
+                pass
+            bot.send_photo(chat_id, make_meme(template_id, text))
+        else:
+            bot.send_message(chat_id, "Meme not found.")
+
+
+@bot.callback_query_handler(func=lambda call: "store" in call.data)
+def receive_store_meme(call):
+    chat_id = call.message.chat.id
+    msg_id = call.message.message_id
+
+    meme = Memes(chat_id, *call.data.split("/")[1:])
+    session.add(meme)
+    session.commit()
+    session.refresh(meme)
+
+    # TODO make kb invalid
+    # kb = types.InlineKeyboardMarkup()
+    # kb.row(types.InlineKeyboardButton("Success"))
+    # bot.edit_message_reply_markup(chat_id=chat_id, message_id=msg_id, reply_markup=kb)
+    bot.send_message(chat_id, "You can access this by typing `/publish %d`." % meme.ID, parse_mode="Markdown")
+
+
 bot.polling()
