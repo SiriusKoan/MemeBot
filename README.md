@@ -8,6 +8,7 @@
 `/template {template_id}` show template usage, you can visit https://siriuskoan.github.io/MemeBot to see all available templates.  
 `/make {template_id},{text1},{text2},...` make a meme, and you can also press the button to store the meme and publish it to get the id of the meme and allow others to get access to your meme.  
 `/publish {meme_id}` get a published meme by its id.  
+`/rank` get the rank of every template.  
 
 ### Get started
 1. Visit https://siriuskoan.github.io/MemeBot to choose a template you want to use.

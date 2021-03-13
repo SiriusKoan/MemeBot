@@ -13,7 +13,7 @@ from messages import help_msg, welcome
 TOKEN = getenv("TOKEN")
 bot = telebot.TeleBot(TOKEN)
 
-engine = create_engine("sqlite:///data.db")
+engine = create_engine("sqlite:///data.db/?check_same_thread=False")
 base.metadata.create_all(engine)
 Session = sessionmaker(engine)
 session = Session()
@@ -43,7 +43,9 @@ def receive_make_meme(message):
     else:
         if template_id in templates:
             if (
-                session.query(TemplateTotalUse).filter_by(template_id=template_id).first()
+                session.query(TemplateTotalUse)
+                .filter_by(template_id=template_id)
+                .first()
                 is None
             ):
                 use = TemplateTotalUse(template_id)
@@ -61,7 +63,9 @@ def receive_make_meme(message):
             kb = types.InlineKeyboardMarkup()
             callback_data = ",".join(["store", str(template_id), *text])
             kb.row(
-                types.InlineKeyboardButton("Store and publish", callback_data=callback_data)
+                types.InlineKeyboardButton(
+                    "Store and publish", callback_data=callback_data
+                )
             )
             bot.send_photo(chat_id, make_meme(template_id, text), reply_markup=kb)
         else:
@@ -108,6 +112,30 @@ def receive_send_published(message):
             bot.send_message(chat_id, "Meme not found.")
 
 
+@bot.message_handler(commands=["rank"])
+def receive_rank(message):
+    chat_id = message.chat.id
+    rank = []
+    msg = ""
+    records = session.query(TemplateTotalUse).all()
+    for record in records:
+        rank.append((record.template_id, record.use))
+    rank = sorted(rank, key=lambda record: record[1])
+    rank.reverse()
+    for i in range(len(rank)):
+        msg += " ".join(
+            [
+                str(i + 1) + ".",
+                "template",
+                str(rank[i][0]),
+                "is used for",
+                str(rank[i][1]),
+                "times",
+            ]
+        )  # 1. template [template_id] is used for [use] times
+        msg += "\n"
+    bot.send_message(chat_id, msg)
+
 
 # store meme callback
 @bot.callback_query_handler(lambda call: "store" in call.data)
@@ -128,6 +156,6 @@ def receive_store_meme(call):
         "You can access this by typing `/publish %d`." % meme.ID,
         parse_mode="Markdown",
     )
-    
+
 
 bot.polling()
