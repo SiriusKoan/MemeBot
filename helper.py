@@ -1,3 +1,4 @@
+from string import printable
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from templates import templates
@@ -28,7 +29,10 @@ def make_meme(template_id, text):
     with Image.open("templates/%s.png" % template_id) as template:
         draw = ImageDraw.Draw(template)
         for i in range(min(len(coordinates), len(text))):
-            font = ImageFont.truetype("fonts/impact.ttf", measure_font_size(text[i]))
+            if all(c in printable for c in text[i]):
+                font = ImageFont.truetype("fonts/impact.ttf", measure_font_size(text[i]))
+            else:
+                font = ImageFont.truetype("fonts/jf.ttf", measure_font_size(text[i]))
             width, _ = draw.textsize(text[i], font)
             x = coordinates[i][0] - (width / 2)
             y = coordinates[i][1]
