@@ -24,7 +24,7 @@ def receive_start(message):
         session.add(user)
         session.commit()
     bot.send_message(chat_id, welcome)
-    bot.send_message(chat_id, help)
+    bot.send_message(chat_id, help, parse_mode="Markdown")
 
 
 # make a meme
