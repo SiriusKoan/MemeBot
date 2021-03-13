@@ -17,8 +17,8 @@ def measure_font_size(text):
 
 def generate_example_text(template_id):
     template_info = templates[template_id]
-    N = len(template_info["position"]) + 1
-    return list("text%d" % i for i in range(1, N))
+    text_fields = len(template_info["position"]) + 1
+    return list("text%d" % i for i in range(1, text_fields))
 
 
 def make_meme(template_id, text):

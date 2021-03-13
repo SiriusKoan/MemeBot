@@ -7,10 +7,10 @@ class User(base):
     __tablename__ = "users"
     ID = Column(Integer, primary_key=True)
     chat_id = Column(Integer, unique=True, nullable=False)
-    
+
     def __init__(self, chat_id):
         self.chat_id = chat_id
-        
+
 class TemplateTotalUse(base):     # record total use
     __tablename__ = "templates_use"
     ID = Column(Integer, primary_key=True)
@@ -30,7 +30,7 @@ class Memes(base):
     text3 = Column(String)
     text4 = Column(String)
     
-    def __init__(self, chat_id, template_id, text1=None, text2=None, text3=None):
+    def __init__(self, chat_id, template_id, text1=None, text2=None, text3=None, text4=None):
         self.chat_id = chat_id
         self.template_id = template_id
         self.text1 = text1

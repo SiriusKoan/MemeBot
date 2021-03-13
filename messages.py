@@ -1,6 +1,6 @@
 welcome = "Welcome. I can help you send memes."
 
-help = """
+help_msg = """
 You can use the following commands:
 `/help` show help.
 `/template {template_id}` show template usage, you can visit https://siriuskoan.github.io/MemeBot to see all available templates.

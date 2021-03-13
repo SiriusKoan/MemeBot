@@ -1,7 +1,8 @@
 # MemeBot
 ![](https://img.shields.io/badge/running-false-red)
+[![Code Grade](https://www.code-inspector.com/project/20039/status/svg)](https://www.code-inspector.com)
 ## Use this bot
-[MemeBot](https://t.me/make_meme_bot)  
+[MemeBot](https://t.me/make_meme_bot)
 ### Commands
 `/help` show help.  
 `/template {template_id}` show template usage, you can visit https://siriuskoan.github.io/MemeBot to see all available templates.  
