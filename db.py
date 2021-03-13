@@ -28,6 +28,7 @@ class Memes(base):
     text1 = Column(String)
     text2 = Column(String)
     text3 = Column(String)
+    text4 = Column(String)
     
     def __init__(self, chat_id, template_id, text1=None, text2=None, text3=None):
         self.chat_id = chat_id
@@ -35,4 +36,5 @@ class Memes(base):
         self.text1 = text1
         self.text2 = text2
         self.text3 = text3
+        self.text4 = text4
     

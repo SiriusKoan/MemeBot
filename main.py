@@ -1,11 +1,10 @@
 import telebot
 from telebot import types
 from os import getenv, listdir
-from PIL import Image, ImageDraw, ImageFont
 from templates import templates
-from io import BytesIO
-from helper import make_meme
+from helper import make_meme, generate_example_text
 from db import base, User, TemplateTotalUse, Memes
+from messages import help, welcome
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -16,7 +15,7 @@ base.metadata.create_all(engine)
 Session = sessionmaker(engine)
 session = Session()
 
-
+# start
 @bot.message_handler(commands=["start", "help"])
 def receive_start(message):
     chat_id = message.chat.id
@@ -24,9 +23,11 @@ def receive_start(message):
     if session.query(User).filter_by(chat_id=chat_id).first() is None:
         session.add(user)
         session.commit()
-    bot.send_message(chat_id, "Welcome. I can help you send memes.")
+    bot.send_message(chat_id, welcome)
+    bot.send_message(chat_id, help)
 
 
+# make a meme
 @bot.message_handler(commands=["make"])
 def receive_make_meme(message):
     chat_id = message.chat.id
@@ -62,20 +63,21 @@ def receive_make_meme(message):
         bot.send_message(chat_id, "Template not found.")
 
 
+# show template usage
 @bot.message_handler(commands=["template"])
 def receive_get_template(message):
     chat_id = message.chat.id
     try:
         template_id = int(message.text[10:])
         if template_id in templates:
-            with open("templates/%s.png" % template_id, "rb") as template:
-                bot.send_photo(chat_id, template)
+            bot.send_photo(chat_id, make_meme(template_id, generate_example_text(template_id)))
         else:
             bot.send_message(chat_id, "Template not found.")
     except ValueError:
         bot.send_message(chat_id, "Please type an integer.")
         
-        
+
+# get published meme by its ID
 @bot.message_handler(commands=["publish"])
 def receive_send_published(message):
     chat_id = message.chat.id
@@ -88,7 +90,7 @@ def receive_send_published(message):
         meme = session.query(Memes).filter_by(ID=ID).first()
         if meme is not None:
             template_id = meme.template_id
-            text = [meme.text1, meme.text2, meme.text3]
+            text = [meme.text1, meme.text2, meme.text3, meme.text4]
             try:
                 text.remove(None)
             except:
@@ -98,6 +100,7 @@ def receive_send_published(message):
             bot.send_message(chat_id, "Meme not found.")
 
 
+# store meme callback
 @bot.callback_query_handler(func=lambda call: "store" in call.data)
 def receive_store_meme(call):
     chat_id = call.message.chat.id

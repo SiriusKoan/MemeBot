@@ -15,6 +15,12 @@ def measure_font_size(text):
         return 20
 
 
+def generate_example_text(template_id):
+    template_info = templates[template_id]
+    N = len(template_info["position"]) + 1
+    return list("text%d" % i for i in range(1, N))
+
+
 def make_meme(template_id, text):
     template_info = templates[template_id]
     coordinates = template_info["position"]
@@ -30,4 +36,3 @@ def make_meme(template_id, text):
         f = BytesIO()
         template.save(f, "PNG")
         return f.getvalue()
-        
