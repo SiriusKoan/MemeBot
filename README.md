@@ -20,6 +20,6 @@ Language Support: English and Traditional Chinese
 
 ## Add a new template
 1. Add the **png file** to templates folder, and the filename should be an integer that hasn't been used. The integer will be the **template ID**.
-2. Add the **template ID** to templates which is a dictionary in `templates.py`. The key `position` indicates the coordinates of the center of the words user inputs, and the key `color` means the font color which basically depends on the background color of the template.
+2. Add the **template ID** to templates which is a dictionary in `templates.py`. The key `position` indicates the coordinates of the center of the words that user inputs, and the key `color` means the font color which basically depends on the background color of the template.
 3. Add the template to `index.html`, which allows users to see this template.
 4. Check everything works fine and create a PR!
