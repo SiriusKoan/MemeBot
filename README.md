@@ -1,6 +1,8 @@
 # MemeBot
-![](https://img.shields.io/badge/running-true-lightgreen)
+![](https://img.shields.io/badge/running-true-brightgreen)
 [![Code Grade](https://www.code-inspector.com/project/20039/status/svg)](https://www.code-inspector.com)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+[![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badges/)
 ## Use this bot
 [MemeBot](https://t.me/make_meme_bot)  
 Language Support: English and Traditional Chinese  

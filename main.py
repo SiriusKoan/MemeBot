@@ -35,7 +35,13 @@ def receive_start(message):
 @bot.message_handler(commands=["make"])
 def receive_make_meme(message):
     chat_id = message.chat.id
-    template_id, *text = message.text[6:].split(",")
+    try:
+        args = message.text.split(" ")[1]
+    except IndexError:
+        bot.send_message(chat_id, "Please enter the meme id and the text.")
+        return
+    
+    template_id, *text = args.split(",")
     try:
         template_id = int(template_id)
     except ValueError:
@@ -77,9 +83,11 @@ def receive_make_meme(message):
 def receive_get_template(message):
     chat_id = message.chat.id
     try:
-        template_id = int(message.text[10:])
+        template_id = int(message.text.split(" ")[1])
     except ValueError:
-        bot.send_message(chat_id, "Please type an integer.")
+        bot.send_message(chat_id, "Please enter a valid template id.")
+    except IndexError:
+        bot.send_message(chat_id,  "Please enter a template id.")
     else:
         if template_id in templates:
             bot.send_photo(
@@ -93,11 +101,18 @@ def receive_get_template(message):
 @bot.message_handler(commands=["publish"])
 def receive_send_published(message):
     chat_id = message.chat.id
-    ID = message.text[8:]
+    try:
+        ID = message.text.split(" ")[1]
+    except IndexError:
+        bot.send_message(chat_id, "Please enter a meme id.")
+        return
+    
     try:
         ID = int(ID)
     except ValueError:
-        bot.send_message(chat_id, "Please type an integer.")
+        bot.send_message(chat_id, "Please enter a valid meme id.")
+    except IndexError:
+        bot.send_message(chat_id, "Please enter a meme id.")
     else:
         meme = session.query(Memes).filter_by(ID=ID).first()
         if meme is not None:
@@ -137,7 +152,7 @@ def receive_rank(message):
     bot.send_message(chat_id, msg)
 
 
-# store meme callback
+# store meme callback, from receive_make_meme function
 @bot.callback_query_handler(lambda call: "store" in call.data)
 def receive_store_meme(call):
     chat_id = call.message.chat.id
