@@ -1,10 +1,9 @@
 from os import getenv
+from uuid import uuid4
 import telebot
 from telebot import types
-from flask import Flask, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from uuid import uuid4
 from templates import templates
 from helper import make_meme, generate_example_text
 from db import base, User, TemplateTotalUse, Memes
@@ -66,14 +65,17 @@ def receive_make_meme(message):
                 use.use = TemplateTotalUse.use + 1
                 session.commit()
 
-            kb = types.InlineKeyboardMarkup()
-            callback_data = ",".join(["store", str(template_id), *text])
-            kb.row(
-                types.InlineKeyboardButton(
-                    "Store and publish", callback_data=callback_data
+            if chat_id > 0:
+                kb = types.InlineKeyboardMarkup()
+                callback_data = ",".join(["store", str(template_id), *text])
+                kb.row(
+                    types.InlineKeyboardButton(
+                        "Store and publish", callback_data=callback_data
+                    )
                 )
-            )
-            bot.send_photo(chat_id, make_meme(template_id, text), reply_markup=kb)
+                bot.send_photo(chat_id, make_meme(template_id, text), reply_markup=kb)
+            else:
+                bot.send_photo(chat_id, make_meme(template_id, text))
         else:
             bot.send_message(chat_id, "Template not found.")
 
@@ -87,7 +89,7 @@ def receive_get_template(message):
     except ValueError:
         bot.send_message(chat_id, "Please enter a valid template id.")
     except IndexError:
-        bot.send_message(chat_id,  "Please enter a template id.")
+        bot.send_message(chat_id, "Please enter a template id.")
     else:
         if template_id in templates:
             bot.send_photo(
@@ -118,10 +120,6 @@ def receive_send_published(message):
         if meme is not None:
             template_id = meme.template_id
             text = [meme.text1, meme.text2, meme.text3, meme.text4]
-            try:
-                text.remove(None)
-            except:
-                pass
             bot.send_photo(chat_id, make_meme(template_id, text))
         else:
             bot.send_message(chat_id, "Meme not found.")
@@ -138,6 +136,7 @@ def receive_rank(message):
     rank = sorted(rank, key=lambda record: record[1])
     rank.reverse()
     for i in range(len(rank)):
+        # msg format: 1. template [template_id] is used for [use] times
         msg += " ".join(
             [
                 str(i + 1) + ".",
@@ -147,7 +146,7 @@ def receive_rank(message):
                 str(rank[i][1]),
                 "times",
             ]
-        )  # 1. template [template_id] is used for [use] times
+        )
         msg += "\n"
     bot.send_message(chat_id, msg)
 

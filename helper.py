@@ -1,6 +1,6 @@
 from string import printable
-from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
+from PIL import Image, ImageDraw, ImageFont
 from templates import templates
 
 
@@ -25,7 +25,9 @@ def generate_example_text(template_id):
 def make_meme(template_id, text):
     template_info = templates[template_id]
     coordinates = template_info["position"]
-    color = template_info["color"]
+    color = "#FFFFFF"
+    shadowcolor = "#000000"
+    text = [t for t in text if t is not None]
     with Image.open("templates/%s.png" % template_id) as template:
         draw = ImageDraw.Draw(template)
         for i in range(min(len(coordinates), len(text))):
@@ -36,6 +38,10 @@ def make_meme(template_id, text):
             width, _ = draw.textsize(text[i], font)
             x = coordinates[i][0] - (width / 2)
             y = coordinates[i][1]
+            draw.text((x-2, y-2), text[i].upper(), font=font, fill=shadowcolor)
+            draw.text((x+2, y-2), text[i].upper(), font=font, fill=shadowcolor)
+            draw.text((x-2, y+2), text[i].upper(), font=font, fill=shadowcolor)
+            draw.text((x+2, y+2), text[i].upper(), font=font, fill=shadowcolor)
             draw.text((x, y), text[i].upper(), font=font, fill=color)
         f = BytesIO()
         template.save(f, "PNG")
