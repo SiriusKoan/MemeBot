@@ -35,16 +35,16 @@ def receive_start(message):
 def receive_make_meme(message):
     chat_id = message.chat.id
     try:
-        args = message.text.split(" ")[1]
+        args = message.text[message.text.index(" ")+1:]
     except IndexError:
-        bot.send_message(chat_id, "Please enter the meme id and the text.")
+        bot.send_message(chat_id, "Please enter the template ID and the text.")
         return
     
     template_id, *text = args.split(",")
     try:
         template_id = int(template_id)
     except ValueError:
-        bot.send_message(chat_id, "Template id should be an integer.")
+        bot.send_message(chat_id, "Template ID should be an integer.")
     else:
         if template_id in templates:
             if (
@@ -66,14 +66,18 @@ def receive_make_meme(message):
                 session.commit()
 
             if chat_id > 0:
-                kb = types.InlineKeyboardMarkup()
                 callback_data = ",".join(["store", str(template_id), *text])
-                kb.row(
-                    types.InlineKeyboardButton(
-                        "Store and publish", callback_data=callback_data
+                if len(callback_data.encode("utf-8")) <= 64:
+                    kb = types.InlineKeyboardMarkup()
+                    kb.row(
+                        types.InlineKeyboardButton(
+                            "Store and publish", callback_data=callback_data
+                        )
                     )
-                )
-                bot.send_photo(chat_id, make_meme(template_id, text), reply_markup=kb)
+                    bot.send_photo(chat_id, make_meme(template_id, text), reply_markup=kb)
+                else:   # size of callback_data exceeds telegram API limit (64 bytes)
+                    bot.send_message(chat_id, "Unable to publish: The length of text is too long to store.")
+                    bot.send_photo(chat_id, make_meme(template_id, text))
             else:
                 bot.send_photo(chat_id, make_meme(template_id, text))
         else:
@@ -89,7 +93,7 @@ def receive_get_template(message):
     except ValueError:
         bot.send_message(chat_id, "Please enter a valid template id.")
     except IndexError:
-        bot.send_message(chat_id, "Please enter a template id.")
+        bot.send_message(chat_id, "Please enter a template ID.")
     else:
         if template_id in templates:
             bot.send_photo(
@@ -106,15 +110,15 @@ def receive_send_published(message):
     try:
         ID = message.text.split(" ")[1]
     except IndexError:
-        bot.send_message(chat_id, "Please enter a meme id.")
+        bot.send_message(chat_id, "Please enter a meme ID.")
         return
     
     try:
         ID = int(ID)
     except ValueError:
-        bot.send_message(chat_id, "Please enter a valid meme id.")
+        bot.send_message(chat_id, "Please enter a valid meme ID.")
     except IndexError:
-        bot.send_message(chat_id, "Please enter a meme id.")
+        bot.send_message(chat_id, "Please enter a meme ID.")
     else:
         meme = session.query(Memes).filter_by(ID=ID).first()
         if meme is not None:
